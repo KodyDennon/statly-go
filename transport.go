@@ -32,6 +32,7 @@ type TransportOptions struct {
 // HTTPTransport sends events over HTTP with batching and retry support.
 type HTTPTransport struct {
 	options  TransportOptions
+	dsn      string
 	endpoint string
 	client   *http.Client
 	queue    chan *Event
@@ -61,6 +62,7 @@ func NewHTTPTransport(options TransportOptions) *HTTPTransport {
 
 	t := &HTTPTransport{
 		options:  options,
+		dsn:      options.DSN,
 		endpoint: parseDSN(options.DSN),
 		client: &http.Client{
 			Timeout: options.Timeout,
@@ -77,12 +79,27 @@ func NewHTTPTransport(options TransportOptions) *HTTPTransport {
 }
 
 // parseDSN parses the DSN and returns the API endpoint.
+// DSN format: https://<api-key>@statly.live/<org-slug>
 func parseDSN(dsn string) string {
-	dsn = strings.TrimSuffix(dsn, "/")
-	if !strings.HasSuffix(dsn, "/api/v1/events") {
-		dsn = dsn + "/api/v1/events"
+	// Extract the host from the DSN URL
+	dsn = strings.TrimPrefix(dsn, "https://")
+	dsn = strings.TrimPrefix(dsn, "http://")
+
+	// Find the @ to get past the API key
+	if idx := strings.Index(dsn, "@"); idx != -1 {
+		dsn = dsn[idx+1:]
 	}
-	return dsn
+
+	// Extract just the host (before the path)
+	if idx := strings.Index(dsn, "/"); idx != -1 {
+		dsn = dsn[:idx]
+	}
+
+	if dsn == "" {
+		dsn = "statly.live"
+	}
+
+	return fmt.Sprintf("https://%s/api/v1/observe/ingest", dsn)
 }
 
 // Send queues an event for sending.
@@ -213,6 +230,7 @@ func (t *HTTPTransport) sendBatch(batch []*Event) {
 
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("User-Agent", fmt.Sprintf("statly-observe-go/%s", Version))
+		req.Header.Set("X-Statly-DSN", t.dsn)
 
 		resp, err := t.client.Do(req)
 		if err != nil {
@@ -251,6 +269,7 @@ func (t *HTTPTransport) sendBatch(batch []*Event) {
 // SyncTransport sends events synchronously (useful for testing).
 type SyncTransport struct {
 	options  TransportOptions
+	dsn      string
 	endpoint string
 	client   *http.Client
 }
@@ -266,6 +285,7 @@ func NewSyncTransport(options TransportOptions) *SyncTransport {
 
 	return &SyncTransport{
 		options:  options,
+		dsn:      options.DSN,
 		endpoint: parseDSN(options.DSN),
 		client: &http.Client{
 			Timeout: options.Timeout,
@@ -292,6 +312,7 @@ func (t *SyncTransport) Send(event *Event) bool {
 
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("User-Agent", fmt.Sprintf("statly-observe-go/%s", Version))
+		req.Header.Set("X-Statly-DSN", t.dsn)
 
 		resp, err := t.client.Do(req)
 		if err != nil {

@@ -20,8 +20,9 @@ import (
 )
 
 func main() {
+    // Get your DSN from statly.live/dashboard/observe/setup
     err := statly.Init(statly.Options{
-        DSN:         "https://observe.statly.live/your-org",
+        DSN:         "https://sk_live_xxx@statly.live/your-org",
         Environment: "production",
         Release:     "1.0.0",
     })

@@ -50,7 +50,7 @@ func TestClientInit(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, err := NewClient(Options{
-		DSN:         "https://observe.statly.live/test",
+		DSN:         "https://sk_test_xxx@statly.live/test",
 		Environment: "test",
 		Release:     "1.0.0",
 		Transport:   transport,
@@ -60,7 +60,7 @@ func TestClientInit(t *testing.T) {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	if client.options.DSN != "https://observe.statly.live/test" {
+	if client.options.DSN != "https://sk_test_xxx@statly.live/test" {
 		t.Errorf("Expected DSN to be set")
 	}
 
@@ -81,7 +81,7 @@ func TestCaptureException(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, _ := NewClient(Options{
-		DSN:       "https://observe.statly.live/test",
+		DSN:       "https://sk_test_xxx@statly.live/test",
 		Transport: transport,
 	})
 
@@ -114,7 +114,7 @@ func TestCaptureMessage(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, _ := NewClient(Options{
-		DSN:       "https://observe.statly.live/test",
+		DSN:       "https://sk_test_xxx@statly.live/test",
 		Transport: transport,
 	})
 
@@ -142,7 +142,7 @@ func TestSetUser(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, _ := NewClient(Options{
-		DSN:       "https://observe.statly.live/test",
+		DSN:       "https://sk_test_xxx@statly.live/test",
 		Transport: transport,
 	})
 
@@ -175,7 +175,7 @@ func TestSetTags(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, _ := NewClient(Options{
-		DSN:       "https://observe.statly.live/test",
+		DSN:       "https://sk_test_xxx@statly.live/test",
 		Transport: transport,
 	})
 
@@ -202,7 +202,7 @@ func TestAddBreadcrumb(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, _ := NewClient(Options{
-		DSN:       "https://observe.statly.live/test",
+		DSN:       "https://sk_test_xxx@statly.live/test",
 		Transport: transport,
 	})
 
@@ -239,7 +239,7 @@ func TestSampleRate(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, _ := NewClient(Options{
-		DSN:        "https://observe.statly.live/test",
+		DSN:        "https://sk_test_xxx@statly.live/test",
 		SampleRate: 0.0, // Drop all events
 		Transport:  transport,
 	})
@@ -256,7 +256,7 @@ func TestBeforeSend(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, _ := NewClient(Options{
-		DSN:       "https://observe.statly.live/test",
+		DSN:       "https://sk_test_xxx@statly.live/test",
 		Transport: transport,
 		BeforeSend: func(event *Event) *Event {
 			event.Tags["custom"] = "added"
@@ -280,7 +280,7 @@ func TestBeforeSendDropEvent(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, _ := NewClient(Options{
-		DSN:       "https://observe.statly.live/test",
+		DSN:       "https://sk_test_xxx@statly.live/test",
 		Transport: transport,
 		BeforeSend: func(event *Event) *Event {
 			return nil // Drop all events
@@ -299,7 +299,7 @@ func TestFlush(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, _ := NewClient(Options{
-		DSN:       "https://observe.statly.live/test",
+		DSN:       "https://sk_test_xxx@statly.live/test",
 		Transport: transport,
 	})
 
@@ -314,7 +314,7 @@ func TestClose(t *testing.T) {
 	transport := NewMockTransport()
 
 	client, _ := NewClient(Options{
-		DSN:       "https://observe.statly.live/test",
+		DSN:       "https://sk_test_xxx@statly.live/test",
 		Transport: transport,
 	})
 
