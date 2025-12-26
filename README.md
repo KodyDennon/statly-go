@@ -6,6 +6,10 @@
 
 Error tracking and monitoring for Go applications. Capture panics and errors, track releases, and debug issues faster.
 
+**[📚 Full Documentation](https://docs.statly.live/sdk/go/installation)** | **[🚀 Get Started](https://statly.live)** | **[💬 Support](mailto:support@mail.kodydennon.com)**
+
+> **This SDK requires a [Statly](https://statly.live) account.** Sign up free at [statly.live](https://statly.live) to get your DSN and start tracking errors in minutes.
+
 ## Features
 
 - Automatic panic recovery with stack traces
@@ -28,8 +32,26 @@ go get github.com/KodyDennon/statly-go
 1. Go to [statly.live/dashboard/observe/setup](https://statly.live/dashboard/observe/setup)
 2. Create an API key for Observe
 3. Copy your DSN (format: `https://<api-key>@statly.live/<org-slug>`)
+4. Add to your environment: `export STATLY_DSN=https://...`
 
 ## Quick Start
+
+The SDK automatically loads DSN from environment variables, so you can simply:
+
+```go
+import statly "github.com/KodyDennon/statly-go"
+
+func main() {
+    // Auto-loads STATLY_DSN from environment
+    err := statly.Init(statly.Options{})
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer statly.Close()
+}
+```
+
+Or pass it explicitly:
 
 ```go
 package main
@@ -224,11 +246,22 @@ func main() {
 }
 ```
 
+## Environment Variables
+
+The SDK automatically loads configuration from environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `STATLY_DSN` | Your project's DSN (primary) |
+| `STATLY_OBSERVE_DSN` | Alternative DSN variable |
+| `STATLY_ENVIRONMENT` | Environment name |
+| `GO_ENV` or `APP_ENV` | Fallback for environment |
+
 ## Configuration Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `DSN` | `string` | **Required** | Your project's Data Source Name |
+| `DSN` | `string` | `os.Getenv("STATLY_DSN")` | Your project's Data Source Name |
 | `Environment` | `string` | `""` | Environment name (production, staging, development) |
 | `Release` | `string` | `""` | Release/version identifier for tracking |
 | `Debug` | `bool` | `false` | Enable debug logging to stderr |
@@ -445,6 +478,25 @@ conn, err := grpc.Dial(
 
 - Go 1.18+
 - Works with any Go HTTP framework
+
+## Resources
+
+- **[Statly Platform](https://statly.live)** - Sign up and manage your error tracking
+- **[Documentation](https://docs.statly.live/sdk/go/installation)** - Full SDK documentation
+- **[API Reference](https://docs.statly.live/sdk/go/api-reference)** - Complete API reference
+- **[Gin Guide](https://docs.statly.live/sdk/go/gin)** - Gin integration
+- **[Echo Guide](https://docs.statly.live/sdk/go/echo)** - Echo integration
+- **[MCP Server](https://github.com/KodyDennon/DD-StatusPage/tree/master/packages/mcp-docs-server)** - AI/Claude integration for docs
+
+## Why Statly?
+
+Statly is more than error tracking. Get:
+- **Status Pages** - Beautiful public status pages for your users
+- **Uptime Monitoring** - Multi-region HTTP/DNS checks every minute
+- **Error Tracking** - SDKs for JavaScript, Python, and Go
+- **Incident Management** - Track and communicate outages
+
+All on Cloudflare's global edge network. [Start free →](https://statly.live)
 
 ## License
 

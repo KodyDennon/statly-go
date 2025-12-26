@@ -2,7 +2,7 @@
 //
 // Example usage:
 //
-//	import "github.com/statly/statly-go"
+//	import "github.com/KodyDennon/statly-go"
 //
 //	func main() {
 //	    // Get your DSN from statly.live/dashboard/observe/setup
@@ -11,6 +11,9 @@
 //	        Environment: "production",
 //	        Release:     "1.0.0",
 //	    })
+//	    // Or auto-load DSN from STATLY_DSN environment variable
+//	    err := statly.Init(statly.Options{})
+//
 //	    if err != nil {
 //	        log.Fatal(err)
 //	    }
@@ -54,10 +57,12 @@ const (
 
 // Options configures the Statly SDK.
 type Options struct {
-	// DSN is the Data Source Name (required).
+	// DSN is the Data Source Name.
+	// Can be omitted if STATLY_DSN or STATLY_OBSERVE_DSN is set in environment.
 	DSN string
 
 	// Environment is the environment name (e.g., "production", "staging").
+	// If not set, auto-loads from STATLY_ENVIRONMENT, GO_ENV, or APP_ENV.
 	Environment string
 
 	// Release is the release version of your application.
@@ -109,13 +114,53 @@ var (
 	globalMu     sync.RWMutex
 )
 
+// loadDSNFromEnv loads DSN from environment variables.
+func loadDSNFromEnv() string {
+	if dsn := os.Getenv("STATLY_DSN"); dsn != "" {
+		return dsn
+	}
+	return os.Getenv("STATLY_OBSERVE_DSN")
+}
+
+// loadEnvironmentFromEnv loads environment from environment variables.
+func loadEnvironmentFromEnv() string {
+	if env := os.Getenv("STATLY_ENVIRONMENT"); env != "" {
+		return env
+	}
+	if env := os.Getenv("GO_ENV"); env != "" {
+		return env
+	}
+	return os.Getenv("APP_ENV")
+}
+
 // Init initializes the Statly SDK with the given options.
+// DSN can be passed explicitly or loaded from environment variables:
+//   - STATLY_DSN
+//   - STATLY_OBSERVE_DSN
+//
+// Environment can also be loaded from:
+//   - STATLY_ENVIRONMENT
+//   - GO_ENV
+//   - APP_ENV
 func Init(options Options) error {
 	globalMu.Lock()
 	defer globalMu.Unlock()
 
 	if globalClient != nil {
 		return errors.New("statly: SDK already initialized, call Close() first")
+	}
+
+	// Auto-load DSN from environment if not provided
+	if options.DSN == "" {
+		options.DSN = loadDSNFromEnv()
+	}
+	if options.DSN == "" {
+		return errors.New("statly: no DSN provided. Set STATLY_DSN environment variable or pass DSN in options.\nGet your DSN at https://statly.live/dashboard/observe/setup")
+	}
+
+	// Auto-load environment from env if not provided
+	if options.Environment == "" {
+		options.Environment = loadEnvironmentFromEnv()
 	}
 
 	client, err := NewClient(options)
