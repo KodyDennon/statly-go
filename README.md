@@ -31,7 +31,8 @@ go get github.com/KodyDennon/statly-go
 
 1. Go to [statly.live/dashboard/observe/setup](https://statly.live/dashboard/observe/setup)
 2. Create an API key for Observe
-3. Copy your DSN (format: `https://<api-key>@statly.live/<org-slug>`)
+3. Copy your DSN (format: `https://<api-key-prefix>@statly.live/<org-slug>`)
+   - Notice: The DSN uses a public 16-character prefix (e.g., `sk_live_a1b2c3d4`) and is safe for client-side use.
 4. Add to your environment: `export STATLY_DSN=https://...`
 
 ## Quick Start
@@ -65,7 +66,7 @@ import (
 func main() {
     // Initialize the SDK
     err := statly.Init(statly.Options{
-        DSN:         "https://sk_live_xxx@statly.live/your-org",
+        DSN:         "https://sk_live_a1b2c3d4@statly.live/your-org",
         Environment: "production",
         Release:     "1.0.0",
     })
@@ -116,7 +117,7 @@ import (
 
 func main() {
     statly.Init(statly.Options{
-        DSN:         "https://sk_live_xxx@statly.live/your-org",
+        DSN:         "https://sk_live_a1b2c3d4@statly.live/your-org",
         Environment: "production",
     })
     defer statly.Close()
@@ -153,7 +154,7 @@ import (
 
 func main() {
     statly.Init(statly.Options{
-        DSN:         "https://sk_live_xxx@statly.live/your-org",
+        DSN:         "https://sk_live_a1b2c3d4@statly.live/your-org",
         Environment: "production",
     })
     defer statly.Close()
@@ -190,7 +191,7 @@ import (
 
 func main() {
     statly.Init(statly.Options{
-        DSN:         "https://sk_live_xxx@statly.live/your-org",
+        DSN:         "https://sk_live_a1b2c3d4@statly.live/your-org",
         Environment: "production",
     })
     defer statly.Close()
@@ -227,7 +228,7 @@ import (
 
 func main() {
     statly.Init(statly.Options{
-        DSN:         "https://sk_live_xxx@statly.live/your-org",
+        DSN:         "https://sk_live_a1b2c3d4@statly.live/your-org",
         Environment: "production",
     })
     defer statly.Close()
