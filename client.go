@@ -129,6 +129,53 @@ func (c *Client) CaptureMessageWithContext(message string, level Level, ctx map[
 	return c.sendEvent(event)
 }
 
+// StartSpan starts a new tracing span.
+func (c *Client) StartSpan(ctx context.Context, name string) (*Span, context.Context) {
+	parent := SpanFromContext(ctx)
+	
+	var traceID, parentID string
+	if parent != nil {
+		traceID = parent.Context.TraceID
+		parentID = parent.Context.SpanID
+	} else {
+		traceID = generateEventID()
+	}
+
+	span := &Span{
+		Name:      name,
+		StartTime: time.Now(),
+		Status:    SpanStatusOK,
+		Context: SpanContext{
+			TraceID:  traceID,
+			SpanID:   generateEventID(),
+			ParentID: parentID,
+		},
+		client: c,
+	}
+
+	return span, ContextWithSpan(ctx, span)
+}
+
+// CaptureSpan sends a completed span to Statly.
+func (c *Client) CaptureSpan(span *Span) string {
+	event := NewEvent()
+	event.Level = LevelSpan
+	event.Message = fmt.Sprintf("Span: %s", span.Name)
+	event.Environment = c.options.Environment
+	event.Release = c.options.Release
+	event.ServerName = c.options.ServerName
+	
+	data := span.ToData()
+	event.Span = &data
+
+	// Apply scope
+	c.mu.RLock()
+	c.scope.ApplyToEvent(event)
+	c.mu.RUnlock()
+
+	return c.sendEvent(event)
+}
+
 // sendEvent sends an event to Statly.
 func (c *Client) sendEvent(event *Event) string {
 	// Apply before_send callback

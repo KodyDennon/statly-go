@@ -53,6 +53,7 @@ const (
 	LevelWarning Level = "warning"
 	LevelError   Level = "error"
 	LevelFatal   Level = "fatal"
+	LevelSpan    Level = "span"
 )
 
 // Options configures the Statly SDK.
@@ -302,6 +303,30 @@ func GetClient() *Client {
 	globalMu.RLock()
 	defer globalMu.RUnlock()
 	return globalClient
+}
+
+// StartSpan starts a new tracing span.
+func StartSpan(ctx context.Context, name string) (*Span, context.Context) {
+	globalMu.RLock()
+	client := globalClient
+	globalMu.RUnlock()
+
+	if client == nil {
+		return &Span{Name: name}, ctx
+	}
+	return client.StartSpan(ctx, name)
+}
+
+// CaptureSpan sends a completed span to Statly.
+func CaptureSpan(span *Span) string {
+	globalMu.RLock()
+	client := globalClient
+	globalMu.RUnlock()
+
+	if client == nil {
+		return ""
+	}
+	return client.CaptureSpan(span)
 }
 
 // Recover captures any panic that occurs and re-panics.

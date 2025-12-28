@@ -13,6 +13,8 @@ Error tracking and monitoring for Go applications. Capture panics and errors, tr
 ## Features
 
 - Automatic panic recovery with stack traces
+- **Distributed Tracing**: Track function execution across goroutines
+- **Performance Monitoring**: Automated latency and duration capture
 - Error capturing with context
 - Breadcrumbs for debugging
 - User context tracking
@@ -98,6 +100,26 @@ func main() {
         Category: "auth",
         Level:    statly.LevelInfo,
     })
+}
+```
+
+## Tracing & Performance
+
+Statly Observe supports distributed tracing to help you visualize function execution and measure performance in your Go applications.
+
+### Manual Spans
+
+Use `statly.StartSpan` to begin a trace. It uses Go's `context` for propagation:
+
+```go
+func handleRequest(ctx context.Context) {
+    span, ctx := statly.StartSpan(ctx, "process_image")
+    defer span.Finish() // Automatically times and reports
+
+    span.SetTag("format", "png")
+    
+    // Pass the new context to child calls for nested tracing
+    resizeImage(ctx)
 }
 ```
 

@@ -17,6 +17,7 @@ type Event struct {
 	Platform    string                 `json:"platform"`
 	Message     string                 `json:"message,omitempty"`
 	Exception   []ExceptionValue       `json:"exception,omitempty"`
+	Span        *SpanData              `json:"span,omitempty"`
 	Contexts    map[string]interface{} `json:"contexts,omitempty"`
 	Tags        map[string]string      `json:"tags,omitempty"`
 	Extra       map[string]interface{} `json:"extra,omitempty"`
