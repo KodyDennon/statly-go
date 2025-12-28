@@ -13,6 +13,7 @@ Error tracking and monitoring for Go applications. Capture panics and errors, tr
 ## Features
 
 - Automatic panic recovery with stack traces
+- **Structured Logging**: Production-grade logging with automatic scrubbing
 - **Distributed Tracing**: Track function execution across goroutines
 - **Performance Monitoring**: Automated latency and duration capture
 - Error capturing with context
@@ -122,6 +123,124 @@ func handleRequest(ctx context.Context) {
     resizeImage(ctx)
 }
 ```
+
+## Structured Logging
+
+The Logger provides production-grade structured logging with automatic secret scrubbing, session management, and batching.
+
+### Quick Start
+
+```go
+import statly "github.com/KodyDennon/statly-go"
+
+logger := statly.NewLogger(statly.LoggerOptions{
+    DSN:         "https://sk_live_xxx@statly.live/your-org",
+    Environment: "production",
+    LoggerName:  "api-server",
+})
+defer logger.Close()
+
+// Log at different levels
+logger.Trace("Entering function", map[string]interface{}{"args": []int{1, 2, 3}})
+logger.Debug("Processing request", map[string]interface{}{"requestId": "req_123"})
+logger.Info("User logged in", map[string]interface{}{"userId": "user_123"})
+logger.Warn("Rate limit approaching", map[string]interface{}{"current": 95, "limit": 100})
+logger.Error("Payment failed", map[string]interface{}{"orderId": "ord_456", "error": "Card declined"})
+logger.Fatal("Database connection lost", map[string]interface{}{"host": "db.example.com"})
+logger.Audit("User role changed", map[string]interface{}{"userId": "user_123", "newRole": "admin"})
+```
+
+### Child Loggers
+
+Create child loggers with inherited context:
+
+```go
+requestLogger := logger.Child(statly.ChildLoggerOptions{
+    Context:    map[string]interface{}{"requestId": "req_123"},
+    LoggerName: "request-handler",
+})
+
+requestLogger.Info("Processing request", nil) // Includes requestId automatically
+```
+
+### User Context
+
+Associate logs with users:
+
+```go
+logger.SetUser(statly.LoggerUser{
+    ID:    "user_123",
+    Email: "jane@example.com",
+    Name:  "Jane Doe",
+})
+```
+
+### Secret Scrubbing
+
+The logger automatically scrubs sensitive data (API keys, passwords, credit cards, etc.). Add custom patterns:
+
+```go
+import "regexp"
+
+logger := statly.NewLogger(statly.LoggerOptions{
+    DSN: "...",
+    ScrubPatterns: []*regexp.Regexp{
+        regexp.MustCompile(`my-custom-secret-[a-z0-9]+`),
+        regexp.MustCompile(`internal-token-\d+`),
+    },
+})
+```
+
+### Sample Rates
+
+Control log volume with per-level sampling:
+
+```go
+logger := statly.NewLogger(statly.LoggerOptions{
+    DSN: "...",
+    SampleRates: map[statly.LogLevel]float64{
+        statly.LogLevelTrace: 0.01,  // 1% of trace logs
+        statly.LogLevelDebug: 0.1,   // 10% of debug logs
+        statly.LogLevelInfo:  0.5,   // 50% of info logs
+        statly.LogLevelWarn:  1.0,   // 100% of warnings
+        statly.LogLevelError: 1.0,   // 100% of errors
+        statly.LogLevelFatal: 1.0,   // 100% of fatal
+    },
+})
+```
+
+### HTTP Middleware
+
+Use the logger middleware to automatically log requests:
+
+```go
+// Gin
+router.Use(logger.GinMiddleware())
+
+// Echo
+e.Use(logger.EchoMiddleware())
+
+// Standard http
+http.Handle("/", logger.Middleware(handler))
+```
+
+### Logger Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `DSN` | `string` | required | Your project's Data Source Name |
+| `Environment` | `string` | `""` | Environment name |
+| `Release` | `string` | `""` | Release/version identifier |
+| `LoggerName` | `string` | `""` | Logger name for filtering |
+| `SessionID` | `string` | auto-generated | Session ID for grouping logs |
+| `User` | `*LoggerUser` | `nil` | User context |
+| `DefaultContext` | `map[string]interface{}` | `nil` | Default context for all logs |
+| `MinLevel` | `LogLevel` | `LogLevelTrace` | Minimum level to log |
+| `SampleRates` | `map[LogLevel]float64` | all 1.0 | Per-level sample rates |
+| `ScrubPatterns` | `[]*regexp.Regexp` | `nil` | Additional patterns to scrub |
+| `BatchSize` | `int` | `50` | Batch size before flush |
+| `FlushInterval` | `time.Duration` | `5s` | Flush interval |
+| `MaxQueueSize` | `int` | `1000` | Max queue size |
 
 ## Framework Integrations
 
