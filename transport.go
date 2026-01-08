@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -81,25 +82,13 @@ func NewHTTPTransport(options TransportOptions) *HTTPTransport {
 // parseDSN parses the DSN and returns the API endpoint.
 // DSN format: https://<api-key>@statly.live/<org-slug>
 func parseDSN(dsn string) string {
-	// Extract the host from the DSN URL
-	dsn = strings.TrimPrefix(dsn, "https://")
-	dsn = strings.TrimPrefix(dsn, "http://")
-
-	// Find the @ to get past the API key
-	if idx := strings.Index(dsn, "@"); idx != -1 {
-		dsn = dsn[idx+1:]
+	u, err := url.Parse(dsn)
+	if err != nil {
+		// Fallback - assume it's just the org slug or misformatted
+		return "https://statly.live/api/v1/observe/ingest"
 	}
 
-	// Extract just the host (before the path)
-	if idx := strings.Index(dsn, "/"); idx != -1 {
-		dsn = dsn[:idx]
-	}
-
-	if dsn == "" {
-		dsn = "statly.live"
-	}
-
-	return fmt.Sprintf("https://%s/api/v1/observe/ingest", dsn)
+	return fmt.Sprintf("%s://%s/api/v1/observe/ingest", u.Scheme, u.Host)
 }
 
 // Send queues an event for sending.
